@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: ai_java
+    env: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    envVars:
+      - key: PORT
+        sync: false
