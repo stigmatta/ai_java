@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: ai-java
+    name: ai_java
     env: docker
     dockerfilePath: ./Dockerfile
     plan: free
