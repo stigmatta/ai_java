@@ -1,29 +1,27 @@
-# Етап 1 — збірка на Java 25
-FROM eclipse-temurin:25-jdk AS builder
+# Етап 1 — збірка
+FROM eclipse-temurin:17-jdk AS builder
 WORKDIR /app
 
-# Копіюємо Gradle-файли
+# Копіюємо Gradle
 COPY gradlew .
 COPY gradle gradle
 COPY build.gradle settings.gradle ./
 
-# Копіюємо код
-COPY src src
-
-# Даємо права на виконання та збираємо
+# Виправляємо проблему з Windows-закінченнями рядків (якщо актуально)
 RUN chmod +x gradlew
-RUN ./gradlew build -x test --no-daemon
 
-# Етап 2 — фінальний образ (JRE 25)
-FROM eclipse-temurin:25-jre AS runtime
+# Збірка (додано прапор для детальних логів у разі помилки)
+COPY src src
+RUN ./gradlew build -x test --no-daemon --stacktrace
+
+# Етап 2 — фінальний образ
+FROM eclipse-temurin:17-jre AS runtime
 WORKDIR /app
 
-# Копіюємо готовий JAR
-COPY --from=builder /app/build/libs/*.jar app.jar
+# Копіюємо JAR (використовуємо маску для надійності)
+COPY --from=builder /app/build/libs/*-SNAPSHOT.jar app.jar
 
-# Порт від Render (за замовчуванням 8080)
 ENV PORT=8080
 EXPOSE ${PORT}
 
-# Запуск з динамічним портом
 ENTRYPOINT ["sh", "-c", "java -Dserver.port=${PORT} -jar app.jar"]
